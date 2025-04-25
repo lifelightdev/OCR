@@ -1,3 +1,5 @@
+package life.light;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,7 @@ public class FileToolTest {
     @Test
     public void delete_all_files_in_directory() {
         FileTool.createDirectory("test");
-        File test = new File("file1");
+        new File("test"+File.separator+"file1");
         Boolean result = FileTool.deleteAllFiles("test");
         Assertions.assertTrue(result);
     }
