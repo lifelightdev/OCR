@@ -10,9 +10,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 import static life.light.Constant.*;
 import static life.light.FileTool.deleteAllFiles;
@@ -103,5 +101,32 @@ public class Main {
                 }
             }
         }
+    }
+
+    public static void concatenationTextFiles() {
+        File dossier = new File(Constant.TEMP + File.separator + Constant.TXT);
+        File[] fichiers = dossier.listFiles();
+
+        String fichierSortie = Constant.TEMP + File.separator + FICHIER_FUSIONNER;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fichierSortie))) {
+            assert fichiers != null;
+            for (File fichierEntree : fichiers) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(fichierEntree))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line += "\n";
+                        writer.write(line);
+                    }
+                    LOGGER.info("Contenu de '{}' a été ajouté à '{}'.", fichierEntree, fichierSortie);
+                } catch (IOException e) {
+                    LOGGER.error("Erreur lors de la lecture du fichier '{}': {}", fichierEntree, e.getMessage());
+                }
+            }
+            LOGGER.info("La concaténation des fichiers est terminée dans '{}'.", fichierSortie);
+        } catch (IOException e) {
+            LOGGER.error("Erreur lors de l'écriture dans le fichier de sortie '{}': {}", fichierSortie, e.getMessage());
+        }
+
     }
 }

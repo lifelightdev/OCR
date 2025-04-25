@@ -7,4 +7,6 @@ public class Constant {
     public static final String FRANCE_CODE_ISO_639_3 = "fra";
     public static final String SPARSE_TEXT = "11";
     public static final int TESSERACT_LSTM = 2;
+    public static final String FICHIER_FUSIONNER = "fichier_fusionner.txt";
+
 }

@@ -82,4 +82,17 @@ class MainTest {
         }
     }
 
+    @Test
+    public void concatenationTextFiles() {
+        try {
+            Main.concatenationTextFiles();
+            Path directoryPath = Paths.get(Constant.TEMP);
+            assertTrue(Files.isDirectory(directoryPath), "Le dossier temp n'existe pas.");
+            long fileCount = list(directoryPath).filter(Files::isRegularFile).count();
+            assertEquals(1, fileCount, "Le répertoire temp devrait contenir un fichier.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
