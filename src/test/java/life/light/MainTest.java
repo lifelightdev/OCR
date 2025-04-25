@@ -67,4 +67,19 @@ class MainTest {
         }
     }
 
+    @Test
+    public void extractTIFFToTxt() {
+        try {
+            File pdf = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator + "test.pdf");
+            Main.extractPDFToTIFF(pdf);
+            Main.extractTIFFToTXT("C:\\Program Files\\Tesseract-OCR\\tessdata");
+            Path directoryPath = Paths.get(Constant.TEMP + File.separator + Constant.TXT);
+            assertTrue(Files.isDirectory(directoryPath), "Le dossier txt n'existe pas.");
+            long fileCount = list(directoryPath).filter(Files::isRegularFile).count();
+            assertEquals(1, fileCount, "Le répertoire txt devrait contenir un fichier.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

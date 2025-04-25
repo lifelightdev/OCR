@@ -1,5 +1,7 @@
 package life.light;
 
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -9,8 +11,10 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
+import static life.light.Constant.*;
 import static life.light.FileTool.deleteAllFiles;
 
 public class Main {
@@ -21,11 +25,14 @@ public class Main {
     public static void main(String[] args) {
         createWorkDirectory();
         emptyWorkDirectory();
-        String pathPDF = "" ;
-        if (args.length == 1) {
+        String pathPDF = "";
+        String pathInstallTesseractOCRDirectoryTessdata = "";
+        if (args.length == 2) {
             pathPDF = args[0];
+            pathInstallTesseractOCRDirectoryTessdata = args[1];
         }
         extractPDFToTIFF(new File(pathPDF));
+        extractTIFFToTXT(pathInstallTesseractOCRDirectoryTessdata);
 
     }
 
@@ -67,4 +74,34 @@ public class Main {
         return numberString.toString();
     }
 
+    public static void extractTIFFToTXT(String pathInstallTesseractOCRDirectoryTessdata) {
+        File dossier = new File(Constant.TEMP + File.separator + Constant.TIFF);
+        File[] fichiers = dossier.listFiles();
+        if (fichiers != null) {
+            for (File tiffImage : fichiers) {
+                if (tiffImage.getName().endsWith("." + Constant.TIFF)) {
+                    try {
+                        Tesseract tesseract = new Tesseract();
+                        tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
+                        tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
+                        tesseract.setVariable("tessedit_pageseg_mode", SPARSE_TEXT);
+                        tesseract.setOcrEngineMode(TESSERACT_LSTM);
+                        String contenu = tesseract.doOCR(tiffImage);
+                        System.out.println(contenu);
+                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
+                        try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
+                            writer.write(contenu + "\n");
+                            LOGGER.info("La chaîne de caractères a été écrite dans le fichier : {}", nomFichier);
+                        } catch (IOException e) {
+                            LOGGER.error("Erreur lors de l'écriture dans le fichier : {}", e.getMessage());
+                        }
+                    } catch (TesseractException e) {
+                        LOGGER.error("Erreur lors de l'OCR : {}", e.getMessage());
+                    } catch (Exception e) {
+                        LOGGER.error("Erreur : {}", e.getMessage());
+                    }
+                }
+            }
+        }
+    }
 }
