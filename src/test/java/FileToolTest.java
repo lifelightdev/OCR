@@ -13,4 +13,12 @@ public class FileToolTest {
         Assertions.assertTrue(result);
     }
 
+    @Test
+    public void delete_all_files_in_directory() {
+        FileTool.createDirectory("test");
+        File test = new File("file1");
+        Boolean result = FileTool.deleteAllFiles("test");
+        Assertions.assertTrue(result);
+    }
+
 }
