@@ -1,20 +1,24 @@
 package life.light;
 
 import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import static java.nio.file.Files.list;
-import static org.junit.jupiter.api.Assertions.*;
+import static life.light.Main.createWorkDirectory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MainTest {
 
     @Test
     public void create_work_directory() {
         try {
-            Main.createWorkDirectory();
+            createWorkDirectory();
             Path directoryPath = Paths.get(Constant.TEMP);
             assertTrue(Files.isDirectory(directoryPath), "Le dossier temp n'existe pas.");
             long fileCount = list(directoryPath).filter(Files::isRegularFile).count();
@@ -48,4 +52,19 @@ class MainTest {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    public void extractPDFToTIFF() {
+        try {
+            File pdf = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator + "test.pdf");
+            Main.extractPDFToTIFF(pdf);
+            Path directoryPath = Paths.get(Constant.TEMP + File.separator + Constant.TIFF);
+            assertTrue(Files.isDirectory(directoryPath), "Le dossier temp n'existe pas.");
+            long fileCount = list(directoryPath).filter(Files::isRegularFile).count();
+            assertEquals(1, fileCount, "Le répertoire temp devrait contenir un fichier.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

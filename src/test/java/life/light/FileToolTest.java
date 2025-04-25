@@ -18,7 +18,7 @@ public class FileToolTest {
     @Test
     public void delete_all_files_in_directory() {
         FileTool.createDirectory("test");
-        new File("test"+File.separator+"file1");
+        new File("test" + File.separator + "file1");
         Boolean result = FileTool.deleteAllFiles("test");
         Assertions.assertTrue(result);
     }
