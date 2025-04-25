@@ -54,7 +54,7 @@ class MainTest {
     }
 
     @Test
-    public void extractPDFToTIFF() {
+    public void extract_PDF_To_TIFF() {
         try {
             File pdf = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator + "test.pdf");
             Main.extractPDFToTIFF(pdf);
@@ -68,7 +68,7 @@ class MainTest {
     }
 
     @Test
-    public void extractTIFFToTxt() {
+    public void extract_TIFF_To_Txt() {
         try {
             File pdf = new File("src" + File.separator + "test" + File.separator + "resources" + File.separator + "test.pdf");
             Main.extractPDFToTIFF(pdf);
@@ -83,7 +83,7 @@ class MainTest {
     }
 
     @Test
-    public void concatenationTextFiles() {
+    public void concatenation_Text_Files() {
         try {
             Main.concatenationTextFiles();
             Path directoryPath = Paths.get(Constant.TEMP);

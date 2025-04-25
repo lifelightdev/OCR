@@ -19,19 +19,32 @@ public class Main {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-
     public static void main(String[] args) {
-        createWorkDirectory();
-        emptyWorkDirectory();
+
         String pathPDF = "";
         String pathInstallTesseractOCRDirectoryTessdata = "";
-        if (args.length == 2) {
+        String etape = Step.ALL.name();
+        if (args.length == 3) {
             pathPDF = args[0];
             pathInstallTesseractOCRDirectoryTessdata = args[1];
+            etape = args[2];
         }
-        extractPDFToTIFF(new File(pathPDF));
-        extractTIFFToTXT(pathInstallTesseractOCRDirectoryTessdata);
-
+        if (etape.equals(Step.ALL.name())) {
+            createWorkDirectory();
+            emptyWorkDirectory();
+        }
+        if (etape.equals(Step.ALL.name()) || (etape.equals(Step.ONE.name()))) {
+            deleteAllFiles(new File(Constant.TEMP + File.separator + Constant.TIFF));
+            extractPDFToTIFF(new File(pathPDF));
+        }
+        if (etape.equals(Step.ALL.name()) || (etape.equals(Step.TWO.name()))) {
+            deleteAllFiles(new File(Constant.TEMP + File.separator + Constant.TXT));
+            extractTIFFToTXT(pathInstallTesseractOCRDirectoryTessdata);
+        }
+        if (etape.equals(Step.ALL.name()) || (etape.equals(Step.THREE.name()))) {
+            deleteAllFiles(new File(Constant.TEMP));
+            concatenationTextFiles();
+        }
     }
 
     public static void createWorkDirectory() {
