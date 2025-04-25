@@ -9,7 +9,6 @@ public class FileTool {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-
     public static Boolean createDirectory(String directory) {
         return new File(directory).mkdirs();
     }
@@ -29,5 +28,19 @@ public class FileTool {
             }
         }
         return true;
+    }
+
+    public static void deleteAllFiles(File directory) {
+        File[] files = directory.listFiles();
+        if (null != files) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    boolean delete = file.delete();
+                    if (!delete) {
+                        LOGGER.info("Le fichier {} n'a pas été supprimé.", file.getName());
+                    }
+                }
+            }
+        }
     }
 }

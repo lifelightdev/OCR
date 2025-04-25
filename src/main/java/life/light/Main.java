@@ -1,10 +1,10 @@
 package life.light;
 
 import java.io.File;
+import static life.light.FileTool.deleteAllFiles;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
+
     public static void main(String[] args) {
         createWorkDirectory();
     }
@@ -14,4 +14,11 @@ public class Main {
         FileTool.createDirectory(Constant.TEMP + File.separator + Constant.TIFF);
         FileTool.createDirectory(Constant.TEMP + File.separator + Constant.TXT);
     }
+
+    public static void emptyWorkDirectory() {
+        deleteAllFiles(new File(Constant.TEMP));
+        deleteAllFiles(new File(Constant.TEMP + File.separator + Constant.TIFF));
+        deleteAllFiles(new File(Constant.TEMP + File.separator + Constant.TXT));
+    }
+
 }
