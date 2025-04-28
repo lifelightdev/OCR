@@ -1,5 +1,6 @@
 package life.light;
 
+import net.sourceforge.tess4j.TessAPI1;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.logging.log4j.LogManager;
@@ -95,8 +96,23 @@ public class Main {
                         Tesseract tesseract = new Tesseract();
                         tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
                         tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
-                        tesseract.setVariable("tessedit_pageseg_mode", SPARSE_TEXT);
                         tesseract.setOcrEngineMode(TESSERACT_LSTM);
+                        // Configuration du Page Segmentation Mode (PSM)
+                        // 0 PSM_OSD_ONLY : Détecter uniquement l'orientation et le script.
+                        // 1 PSM_AUTO_OSD: Orientation et script automatiques.
+                        // 2 PSM_AUTO_ONLY: Segmentation automatique sans OSD ni orientation.
+                        // 3 PSM_AUTO: Segmentation automatique de page avec OSD.
+                        // 4 PSM_SINGLE_COLUMN: Traiter la page comme une seule colonne de texte de tailles variables.
+                        // PSM_SINGLE_BLOCK_VERT_TEXT: Traiter la page comme un seul bloc de texte vertical.
+                        // PSM_SINGLE_LINE: Traiter l'image comme une seule ligne de texte.
+                        // PSM_SINGLE_WORD: Traiter l'image comme un seul mot.
+                        // PSM_CIRCLE_WORD: Traiter l'image comme un seul mot dans un cercle.
+                        // PSM_SINGLE_CHAR: Traiter l'image comme un seul caractère.
+                        // PSM_SPARSE_TEXT: Rechercher autant de texte que possible dans un ordre variable.
+                        // PSM_SPARSE_TEXT_OSD: Avec OSD.
+                        // PSM_RAW_LINE: Traiter la page comme une seule ligne de texte, en ignorant tout le reste.
+                        // PSM_COUNT: Valeur interne, ne pas utiliser.
+                        tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_SINGLE_COLUMN);
                         String contenu = tesseract.doOCR(tiffImage);
                         System.out.println(contenu);
                         String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
