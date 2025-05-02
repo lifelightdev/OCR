@@ -65,7 +65,7 @@ public class Main {
             PDDocument document = PDDocument.load(pdf);
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             for (int page = 0; page < document.getNumberOfPages(); ++page) {
-                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 2400, ImageType.BINARY);
+                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 1200, ImageType.BINARY);
                 String outputFilePath = Constant.TEMP + File.separator + Constant.TIFF + File.separator
                         + "page-" + addZeros(page + 1) + "." + Constant.TIFF;
                 ImageIO.write(bim, Constant.TIFF, new File(outputFilePath));
@@ -96,29 +96,55 @@ public class Main {
                         Tesseract tesseract = new Tesseract();
                         tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
                         tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
-                        tesseract.setOcrEngineMode(TESSERACT_LSTM);
-                        // Configuration du Page Segmentation Mode (PSM)
-                        // 0 PSM_OSD_ONLY : Détecter uniquement l'orientation et le script.
-                        // 1 PSM_AUTO_OSD: Orientation et script automatiques.
-                        // 2 PSM_AUTO_ONLY: Segmentation automatique sans OSD ni orientation.
-                        // 3 PSM_AUTO: Segmentation automatique de page avec OSD.
-                        // 4 PSM_SINGLE_COLUMN: Traiter la page comme une seule colonne de texte de tailles variables.
-                        // PSM_SINGLE_BLOCK_VERT_TEXT: Traiter la page comme un seul bloc de texte vertical.
-                        // PSM_SINGLE_LINE: Traiter l'image comme une seule ligne de texte.
-                        // PSM_SINGLE_WORD: Traiter l'image comme un seul mot.
-                        // PSM_CIRCLE_WORD: Traiter l'image comme un seul mot dans un cercle.
-                        // PSM_SINGLE_CHAR: Traiter l'image comme un seul caractère.
-                        // PSM_SPARSE_TEXT: Rechercher autant de texte que possible dans un ordre variable.
-                        // PSM_SPARSE_TEXT_OSD: Avec OSD.
-                        // PSM_RAW_LINE: Traiter la page comme une seule ligne de texte, en ignorant tout le reste.
-                        // PSM_COUNT: Valeur interne, ne pas utiliser.
+                        /* Configuration du Page Segmentation Mode (PSM)
+                         0 PSM_OSD_ONLY : Détecter uniquement l'orientation et le script.
+                         1 PSM_AUTO_OSD: Orientation et script automatiques.
+                         2 PSM_AUTO_ONLY: Segmentation automatique sans OSD ni orientation.
+                         3 PSM_AUTO: Segmentation automatique de page avec OSD.
+                         4 PSM_SINGLE_COLUMN: Traiter la page comme une seule colonne de texte de tailles variables.
+                         5 PSM_SINGLE_BLOCK_VERT_TEXT: Traiter la page comme un seul bloc de texte vertical.
+                         7 PSM_SINGLE_LINE: Traiter l'image comme une seule ligne de texte.
+                         8 PSM_SINGLE_WORD: Traiter l'image comme un seul mot.
+                         9 PSM_CIRCLE_WORD: Traiter l'image comme un seul mot dans un cercle.
+                        10 PSM_SINGLE_CHAR: Traiter l'image comme un seul caractère.
+                        11 PSM_SPARSE_TEXT: Rechercher autant de texte que possible dans un ordre variable.
+                        12 PSM_SPARSE_TEXT_OSD: Avec OSD.
+                        13 PSM_RAW_LINE: Traiter la page comme une seule ligne de texte, en ignorant tout le reste.
+                        14 PSM_COUNT: Valeur interne, ne pas utiliser.
+                        */
+                        // OK Mais pas de debit credit !!
                         tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_SINGLE_COLUMN);
                         String contenu = tesseract.doOCR(tiffImage);
-                        System.out.println(contenu);
-                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
+                        contenu = contenu.replace(" ‘", "");
+                        contenu = contenu.replace("| ", "");
+                        contenu = contenu.replace(" _ ", "");
+                        contenu = contenu.replace(" — ", "");
+                        contenu = contenu.replace(" | ", "");
+                        contenu = contenu.replace(" = ", "");
+                        contenu = contenu.replace(" … ", "");
+                        contenu = contenu.replace(" =— ", "");
+                        contenu = contenu.replace(" \\", "");
+                        contenu = contenu.replace(" . ", "");
+                        contenu = contenu.replace("‘", "");
+                        LOGGER.info(contenu);
+                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "-EnModeLigne" + "." + Constant.TXT;
                         try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
                             writer.write(contenu + "\n");
-                            LOGGER.info("La chaîne de caractères a été écrite dans le fichier : {}", nomFichier);
+                            LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
+                        } catch (IOException e) {
+                            LOGGER.error("Erreur lors de l'écriture dans le fichier : {}", e.getMessage());
+                        }
+
+                        tesseract = new Tesseract();
+                        tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
+                        tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
+                        tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_AUTO);
+                        contenu = tesseract.doOCR(tiffImage);
+                        LOGGER.info(contenu);
+                        nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "-EnModeColonne" + "." + Constant.TXT;
+                        try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
+                            writer.write(contenu + "\n");
+                            LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
                         } catch (IOException e) {
                             LOGGER.error("Erreur lors de l'écriture dans le fichier : {}", e.getMessage());
                         }
