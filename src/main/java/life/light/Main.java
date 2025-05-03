@@ -12,6 +12,10 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 
 import static life.light.Constant.*;
 import static life.light.FileTool.deleteAllFiles;
@@ -21,6 +25,9 @@ public class Main {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static void main(String[] args) {
+
+        LocalDateTime debut = LocalDateTime.now();
+        LOGGER.info("Début à {}:{}:{}", debut.getHour(), debut.getMinute(), debut.getSecond());
 
         String pathPDF = "";
         String pathInstallTesseractOCRDirectoryTessdata = "";
@@ -46,6 +53,10 @@ public class Main {
             deleteAllFiles(new File(Constant.TEMP));
             concatenationTextFiles();
         }
+
+        LocalDateTime fin = LocalDateTime.now();
+        LOGGER.info("Fin à {}:{}:{}", fin.getHour(), fin.getMinute(), fin.getSecond());
+        LOGGER.info("La durée du traitement est de {} minutes", ChronoUnit.MINUTES.between(debut, fin));
     }
 
     public static void createWorkDirectory() {
@@ -68,8 +79,9 @@ public class Main {
                 BufferedImage bim = pdfRenderer.renderImageWithDPI(page, DPI, ImageType.BINARY);
                 String outputFilePath = Constant.TEMP + File.separator + Constant.TIFF + File.separator
                         + "page-" + addZeros(page + 1) + "." + Constant.TIFF;
-                ImageIO.write(bim, Constant.TIFF, new File(outputFilePath));
-                LOGGER.info("Conversion de la page dans le fichier : {}", outputFilePath);
+                File outputFile = new File(outputFilePath);
+                ImageIO.write(bim, Constant.TIFF,outputFile);
+                //LOGGER.info("Conversion de la page dans le fichier : {}", outputFilePath);
             }
             document.close();
         } catch (IOException e) {
@@ -90,8 +102,9 @@ public class Main {
         File dossier = new File(Constant.TEMP + File.separator + Constant.TIFF);
         File[] fichiers = dossier.listFiles();
         if (fichiers != null) {
-            for (File tiffImage : fichiers) {
-                if (tiffImage.getName().endsWith("." + Constant.TIFF)) {
+            List<File> items = Arrays.asList(fichiers);
+            items.parallelStream().forEach(item -> {
+                if (item.getName().endsWith("." + Constant.TIFF)) {
                     try {
                         Tesseract tesseract = new Tesseract();
                         tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
@@ -114,37 +127,13 @@ public class Main {
                         14 PSM_COUNT: Valeur interne, ne pas utiliser.
                         */
                         tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_SINGLE_COLUMN);
-                        String contenu = tesseract.doOCR(tiffImage);
-                        contenu = contenu.replace(" ‘", "");
-                        contenu = contenu.replace("| ", "");
-                        contenu = contenu.replace(" _ ", "");
-                        contenu = contenu.replace(" — ", "");
-                        contenu = contenu.replace(" | ", "");
-                        contenu = contenu.replace(" = ", "");
-                        contenu = contenu.replace(" … ", "");
-                        contenu = contenu.replace(" =— ", "");
-                        contenu = contenu.replace(" \\", "");
-                        contenu = contenu.replace(" . ", "");
-                        contenu = contenu.replace("‘", "");
+                        String contenu = tesseract.doOCR(item);
+                        contenu = getString(contenu);
                         //LOGGER.info(contenu);
-                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
+                        String nomFichier = item.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
                         try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
                             writer.write(contenu + "\n");
-                            LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
-                        } catch (IOException e) {
-                            LOGGER.error("Erreur lors de l'écriture dans le fichier : {}", e.getMessage());
-                        }
-
-                        tesseract = new Tesseract();
-                        tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
-                        tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
-                        tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_AUTO);
-                        contenu = tesseract.doOCR(tiffImage);
-                        LOGGER.info(contenu);
-                        nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "-EnModeColonne" + "." + Constant.TXT;
-                        try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
-                            writer.write(contenu + "\n");
-                            LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
+                            //LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
                         } catch (IOException e) {
                             LOGGER.error("Erreur lors de l'écriture dans le fichier : {}", e.getMessage());
                         }
@@ -154,8 +143,23 @@ public class Main {
                         LOGGER.error("Erreur : {}", e.getMessage());
                     }
                 }
-            }
+                //LOGGER.info("Traitement de : {} par le thread : {}", item.getName(), Thread.currentThread().getName());
+            });
+            LOGGER.info("Traitement parallèle terminé.");
         }
+    }
+
+    private static String getString(String contenu) {
+        contenu = contenu.replace("‘", "");
+        contenu = contenu.replace("_", "");
+        contenu = contenu.replace("—", "");
+        contenu = contenu.replace("|", "");
+        contenu = contenu.replace("=", "");
+        contenu = contenu.replace("…", "");
+        contenu = contenu.replace("=—", "");
+        contenu = contenu.replace("\\", "");
+        contenu = contenu.replace(" . ", "");
+        return contenu;
     }
 
     public static void concatenationTextFiles() {
@@ -173,15 +177,14 @@ public class Main {
                         line += "\n";
                         writer.write(line);
                     }
-                    LOGGER.info("Contenu de '{}' a été ajouté à '{}'.", fichierEntree, fichierSortie);
+                    //LOGGER.info("Contenu de '{}' a été ajouté à '{}'.", fichierEntree, fichierSortie);
                 } catch (IOException e) {
                     LOGGER.error("Erreur lors de la lecture du fichier '{}': {}", fichierEntree, e.getMessage());
                 }
             }
-            LOGGER.info("La concaténation des fichiers est terminée dans '{}'.", fichierSortie);
+            //LOGGER.info("La concaténation des fichiers est terminée dans '{}'.", fichierSortie);
         } catch (IOException e) {
             LOGGER.error("Erreur lors de l'écriture dans le fichier de sortie '{}': {}", fichierSortie, e.getMessage());
         }
-
     }
 }
