@@ -65,7 +65,7 @@ public class Main {
             PDDocument document = PDDocument.load(pdf);
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             for (int page = 0; page < document.getNumberOfPages(); ++page) {
-                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 1200, ImageType.BINARY);
+                BufferedImage bim = pdfRenderer.renderImageWithDPI(page, DPI, ImageType.BINARY);
                 String outputFilePath = Constant.TEMP + File.separator + Constant.TIFF + File.separator
                         + "page-" + addZeros(page + 1) + "." + Constant.TIFF;
                 ImageIO.write(bim, Constant.TIFF, new File(outputFilePath));
@@ -96,6 +96,7 @@ public class Main {
                         Tesseract tesseract = new Tesseract();
                         tesseract.setDatapath(pathInstallTesseractOCRDirectoryTessdata);
                         tesseract.setLanguage(FRANCE_CODE_ISO_639_3);
+                        tesseract.setVariable("preserve_interword_spaces", "TRUE");
                         /* Configuration du Page Segmentation Mode (PSM)
                          0 PSM_OSD_ONLY : Détecter uniquement l'orientation et le script.
                          1 PSM_AUTO_OSD: Orientation et script automatiques.
@@ -112,7 +113,6 @@ public class Main {
                         13 PSM_RAW_LINE: Traiter la page comme une seule ligne de texte, en ignorant tout le reste.
                         14 PSM_COUNT: Valeur interne, ne pas utiliser.
                         */
-                        // OK Mais pas de debit credit !!
                         tesseract.setPageSegMode(TessAPI1.TessPageSegMode.PSM_SINGLE_COLUMN);
                         String contenu = tesseract.doOCR(tiffImage);
                         contenu = contenu.replace(" ‘", "");
@@ -126,8 +126,8 @@ public class Main {
                         contenu = contenu.replace(" \\", "");
                         contenu = contenu.replace(" . ", "");
                         contenu = contenu.replace("‘", "");
-                        LOGGER.info(contenu);
-                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "-EnModeLigne" + "." + Constant.TXT;
+                        //LOGGER.info(contenu);
+                        String nomFichier = tiffImage.getName().replace("." + Constant.TIFF, "") + "." + Constant.TXT;
                         try (FileWriter writer = new FileWriter(Constant.TEMP + File.separator + Constant.TXT + File.separator + nomFichier)) {
                             writer.write(contenu + "\n");
                             LOGGER.info("La page a été écrite dans le fichier : {}", nomFichier);
