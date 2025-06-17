@@ -30,7 +30,7 @@ public class Main {
         LocalDateTime debut = LocalDateTime.now();
         LOGGER.info("Début à {}:{}:{}", debut.getHour(), debut.getMinute(), debut.getSecond());
 
-        String pathPDF = "";
+        String pathPDF = "grand_livre.pdf";
         createWorkDirectory();
         emptyWorkDirectory();
 
@@ -116,6 +116,15 @@ public class Main {
                 try (BufferedReader reader = new BufferedReader(new FileReader(fichierEntree))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("[")){
+                            line = line.substring(1, line.length() - 1);
+                        }
+                        String[] splitLine = line.split(" ");
+                        for (String s : splitLine) {
+                            if (s.trim().isEmpty()) {
+                                line = line.replace(s, "");
+                            }
+                        }
                         line += "\n";
                         writer.write(line);
                     }
